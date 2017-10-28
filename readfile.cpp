@@ -38,7 +38,6 @@ void readfile(const char* filename)
   in.open(filename); 
   if (in.is_open()) {
 
-    // I need to implement a matrix stack to store transforms.  
     // This is done using standard STL Templates 
     stack <mat4> transfstack;
     vector <vec3> vertexstack;
