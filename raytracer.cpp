@@ -1,7 +1,6 @@
 #include<fstream>
 #include<iostream>
 #include<cmath>
-#include<FreeImage.h>
 #include<stack>
 #include<vector>
 #include<sstream>
@@ -382,31 +381,28 @@ public:
 };
 class Film{
 public:
-  BYTE *pixels;
+  uint8_t *pixels;
   Color **pixel_col;
   Film(int w,int h){
-    pixels=new BYTE[3*w*h];
+    pixels=new uint8_t[3*w*h];
     pixel_col=new Color*[h];
     for(int i=0;i<h;i++)pixel_col[i]=new Color[w];
   }
   void commitColor(sample &s,Color color){
     int ind=w*s.y+s.x;
     int col=color.r*255;
-    BYTE r=(BYTE)col;
+    uint8_t r=(uint8_t)col;
     col=color.g*255;
-    BYTE g=(BYTE)col;
+    uint8_t g=(uint8_t)col;
     col=color.b*255;
-    BYTE b=(BYTE)col;
+    uint8_t b=(uint8_t)col;
     pixels[ind]=r;
     pixels[ind+1]=g;
     pixels[ind+2]=b;
     pixel_col[s.y][s.x]=color;
   }
-  void WriteImagePNG(){
-    FIBITMAP *img = FreeImage_ConvertFromRawBits(pixels, w, h, w * 3, 24, 0xFF0000, 0x00FF00, 0x0000FF, false);
-    FreeImage_Save(FIF_PNG, img, outfilename.c_str(), 0);
-
-  }
+  
+  
   void WriteImagePPM(){
     std::ofstream out("out.ppm");
     out<< "P3\n" << w << '\n' << h << '\n' << "255\n";
@@ -454,7 +450,7 @@ int main(int argc,char* argv[]){
     cerr<<"Usage: raytracer scenefile\n";
     exit(-1);
   }
-  FreeImage_Initialise();
+  
   readfile(argv[1]);
   cout<<"Done reading file, Preprocessing....\n";
   generate_grid();
@@ -462,7 +458,6 @@ int main(int argc,char* argv[]){
   Scene scene;
   scene.render();
   cout<<"Done\n";
-  FreeImage_DeInitialise();
 
 }
 

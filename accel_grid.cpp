@@ -1,7 +1,7 @@
 #include<fstream>
 #include<iostream>
 #include<cmath>
-#include<FreeImage.h>
+#include<algorithm>
 #include<stack>
 #include<vector>
 #include<sstream>
