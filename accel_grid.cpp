@@ -70,9 +70,9 @@ void generate_grid(){
  
   //Find optimal resolution
   int Volume = (max_x-min_x)*(max_y-min_y)*(max_z-min_z);
-  Nx = (max_x-min_x);//*cbrt(grid_resolution_parameter*numobjects/Volume);
-  Ny = (max_y-min_y);//*cbrt(grid_resolution_parameter*numobjects/Volume);
-  Nz = (max_z-min_z);//*cbrt(grid_resolution_parameter*numobjects/Volume);
+  Nx = (max_x-min_x)/5;//*cbrt(grid_resolution_parameter*numobjects/Volume);
+  Ny = (max_y-min_y)/5;//*cbrt(grid_resolution_parameter*numobjects/Volume);
+  Nz = (max_z-min_z)/5;//*cbrt(grid_resolution_parameter*numobjects/Volume);
   
   //make even??
   Nx+=Nx%2;
@@ -82,6 +82,11 @@ void generate_grid(){
   gdx= (max_x-min_x)/Nx;
   gdy= (max_y-min_y)/Ny;
   gdz= (max_z-min_z)/Nz;
+
+  // A very small increase in values so that primitives dont fall exactly on the border of a grid. This results in numerous empty points on triangles.
+  gdx += gdx / Nx;
+  gdy += gdy / Ny;
+  gdz += gdz / Nz;
 
   Nx+=2;
   Ny+=2;
