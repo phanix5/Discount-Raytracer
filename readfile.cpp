@@ -126,7 +126,7 @@ void readfile(const char* filename)
 				}
 
 				// Material Commands 
-				// Ambient, diffuse, specular, shininess properties for each object.
+				// Ambient, diffuse, specular, shininess properties for each primitive.
 				// Filling this in is pretty straightforward, so I've left it in 
 				// the skeleton, also as a hint of how to do the more complex ones.
 				// Note that no transforms/stacks are applied to the colors. 
@@ -196,17 +196,17 @@ void readfile(const char* filename)
 					else cout << "error in camera reading\n";
 				}
 
-				// I've left the code for loading objects in the skeleton, so 
+				// I've left the code for loading primitives in the skeleton, so 
 				// you can get a sense of how this works.  
 				// Also look at demo.txt to get a sense of why things are done this way.
 				else if (cmd == "sphere" || cmd == "tri") {
-					if (numobjects == maxobjects) { // No more objects 
-						cerr << "Reached Maximum Number of Objects " << numobjects << " Will ignore further objects\n";
+					if (numprimitives == maxprimitives) { // No more primitives 
+						cerr << "Reached Maximum Number of primitives " << numprimitives << " Will ignore further primitives\n";
 					}
 					else {
 						validinput = readvals(s, cmd == "tri" ? 3 : 4, values);
 						if (validinput) {
-							object * obj = &(objects[numobjects]);
+							primitive * obj = &(primitives[numprimitives]);
 
 							if (cmd == "tri") {
 								obj->v1 = vertexstack[(int)values[0]];
@@ -220,7 +220,7 @@ void readfile(const char* filename)
 								obj->type = SPHERE;
 							}
 
-							// Set the object's light properties
+							// Set the primitive's light properties
 							for (i = 0; i < 4; i++) {
 								(obj->ambient)[i] = ambient[i];
 								(obj->diffuse)[i] = diffuse[i];
@@ -229,10 +229,10 @@ void readfile(const char* filename)
 							}
 							obj->shininess = shininess;
 
-							// Set the object's transform
+							// Set the primitive's transform
 							obj->transform = transfstack.top();
 						}
-						++numobjects;
+						++numprimitives;
 					}
 				}
 
@@ -304,11 +304,11 @@ void readfile(const char* filename)
 		up = upinit;
 		// Store Camera Transformation 
 		cameraTransform = Transform::lookAt(eye, center, up);
-		// Add ^ to object transformations
-		for (int i = 0; i < numobjects; i++)
+		// Add ^ to primitive transformations
+		for (int i = 0; i < numprimitives; i++)
 		{
-			objects[i].transform = cameraTransform*objects[i].transform;
-			objects[i].invTransform = glm::inverse(objects[i].transform);
+			primitives[i].transform = cameraTransform*primitives[i].transform;
+			primitives[i].invTransform = glm::inverse(primitives[i].transform);
 		}
 		// Transform Light positions
 		for (int i = 0; i < numused; i++) {

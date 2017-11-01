@@ -53,10 +53,17 @@ EXTERN double specular[4] ;
 EXTERN double emission[4] ; 
 EXTERN double shininess ; 
 
-// For multiple objects, read from a file.  
-const int maxobjects = 500000 ; 
-EXTERN int numobjects ; 
+// Distinction is now made between primitives and objects.
+// All prims in a object will have the same material properties
 EXTERN struct object {
+	int start, end;
+};
+EXTERN vector<object> objects;
+
+// For multiple primitives, read from a file.  
+const int maxprimitives = 500000 ; 
+EXTERN int numprimitives ; 
+EXTERN struct primitive {
   int type; //triangle or sphere 
   vec3 v1,v2,v3,center;
   double radius;
@@ -66,7 +73,7 @@ EXTERN struct object {
   double emission[4] ; 
   double shininess ;
   mat4 transform,invTransform ; 
-} objects[maxobjects] ;
+} primitives[maxprimitives] ;
 
 #ifdef MAINPROGRAM
 int maxdepth=5;

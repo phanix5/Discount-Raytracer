@@ -41,6 +41,11 @@ void STLParser::readfile(const char * filename) {
 		vector <vec3> vertexstack;
 		transfstack.push(mat4(1.0));  // identity
 
+		// Create a new object
+		object obj;
+		//set start index
+		obj.start = numprimitives;
+
 		getline(in, str);
 		while (in) {
 			if ((str.find_first_not_of(" \t") != string::npos) && (str[0] != '#')) {
@@ -64,37 +69,41 @@ void STLParser::readfile(const char * filename) {
 				}
 
 				else if (cmd == "endfacet") {
-					if (numobjects == maxobjects) { // No more objects 
-						cerr << "Reached Maximum Number of Objects " << numobjects << " Will ignore further objects\n";
+					if (numprimitives == maxprimitives) { // No more primitives 
+						cerr << "Reached Maximum Number of primitives " << numprimitives << " Will ignore further primitives\n";
 					}
 					else {
-						object * obj = &(objects[numobjects]);
+						primitive * prim = &(primitives[numprimitives]);
 						//cout << "yup";
 
-						obj->v1 = vertexstack[0];
-						obj->v2 = vertexstack[1];
-						obj->v3 = vertexstack[2];
-						obj->type = TRIANGLE;
+						prim->v1 = vertexstack[0];
+						prim->v2 = vertexstack[1];
+						prim->v3 = vertexstack[2];
+						prim->type = TRIANGLE;
 						vertexstack.clear();
 
 						for (i = 0; i < 4; i++) {
-							(obj->ambient)[i] = ambient[i];
-							(obj->diffuse)[i] = diffuse[i];
-							(obj->specular)[i] = specular[i];
-							obj->shininess = shininess;
+							(prim->ambient)[i] = ambient[i];
+							(prim->diffuse)[i] = diffuse[i];
+							(prim->specular)[i] = specular[i];
+							prim->shininess = shininess;
 						}
-						// Set the object's transform
-						obj->transform = transfstack.top();
+						// Set the primitive's transform
+						prim->transform = transfstack.top();
 					}
-					++numobjects;
+					++numprimitives;
 				}
 				else {
-					cerr << "Unknown Command: " << cmd << " Skipping \n";
+					//cerr << "Unknown Command: " << cmd << " Skipping \n";
 				}
 			}
 
 			getline(in, str);
 		}
+
+		//set end index in object and push it into the vertex
+		obj.end = numprimitives - 1;
+		objects.push_back(obj);
 	}
 	else {
 		cerr << "Unable to Open Input Data File " << filename << "\n";

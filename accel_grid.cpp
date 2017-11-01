@@ -14,14 +14,14 @@ using namespace std;
 void generate_grid(){
 
   // First step is to get an estimate of grid spacing and the dimensions of the bounding box
-  object obj;
+  primitive prim;
 
-  //First iteration through objects to get bounding box dimensions
+  //First iteration through primitives to get bounding box dimensions
   double min_z=INT_MAX,max_z=INT_MIN,min_x=INT_MAX,min_y=INT_MAX,max_x=INT_MIN,max_y=INT_MIN;
-  for(int i=0;i<numobjects;i++){
-    obj = objects[i];
-    if(obj.type==SPHERE)continue;
-    vec3 vT = vec3(obj.transform*vec4(obj.v1,1));
+  for(int i=0;i<numprimitives;i++){
+    prim = primitives[i];
+    if(prim.type==SPHERE)continue;
+    vec3 vT = vec3(prim.transform*vec4(prim.v1,1));
     min_z=min(min_z,(double)vT[2]);
     max_z=max(max_z,(double)vT[2]);
     min_y=min(min_y,(double)vT[1]);
@@ -29,7 +29,7 @@ void generate_grid(){
     max_x=max(max_x,(double)vT[0]);
     max_y=max(max_y,(double)vT[1]);
     
-    vT = vec3(obj.transform*vec4(obj.v2,1));
+    vT = vec3(prim.transform*vec4(prim.v2,1));
     min_z=min(min_z,(double)vT[2]);
     max_z=max(max_z,(double)vT[2]);
     min_y=min(min_y,(double)vT[1]);
@@ -37,7 +37,7 @@ void generate_grid(){
     max_x=max(max_x,(double)vT[0]);
     max_y=max(max_y,(double)vT[1]);
     
-    vT = vec3(obj.transform*vec4(obj.v3,1));
+    vT = vec3(prim.transform*vec4(prim.v3,1));
     min_z=min(min_z,(double)vT[2]);
     max_z=max(max_z,(double)vT[2]);
     min_y=min(min_y,(double)vT[1]);
@@ -70,9 +70,9 @@ void generate_grid(){
  
   //Find optimal resolution
   int Volume = (max_x-min_x)*(max_y-min_y)*(max_z-min_z);
-  Nx = (max_x-min_x)/5;//*cbrt(grid_resolution_parameter*numobjects/Volume);
-  Ny = (max_y-min_y)/5;//*cbrt(grid_resolution_parameter*numobjects/Volume);
-  Nz = (max_z-min_z)/5;//*cbrt(grid_resolution_parameter*numobjects/Volume);
+  Nx = (max_x-min_x)/5;//*cbrt(grid_resolution_parameter*numprimitives/Volume);
+  Ny = (max_y-min_y)/5;//*cbrt(grid_resolution_parameter*numprimitives/Volume);
+  Nz = (max_z-min_z)/5;//*cbrt(grid_resolution_parameter*numprimitives/Volume);
   
   //make even??
   Nx+=Nx%2;
@@ -100,12 +100,12 @@ void generate_grid(){
   
   grid = vector< vector<int> >(Nx*Ny*Nz,vector<int>());
 
-  for(int l=0;l<numobjects;l++){
-    obj = objects[l];
-    if(obj.type==SPHERE)continue;
-    vec3 vt1 = vec3(obj.transform*vec4(obj.v1,1));
-    vec3 vt2 = vec3(obj.transform*vec4(obj.v2,1));
-    vec3 vt3 = vec3(obj.transform*vec4(obj.v3,1));
+  for(int l=0;l<numprimitives;l++){
+    prim = primitives[l];
+    if(prim.type==SPHERE)continue;
+    vec3 vt1 = vec3(prim.transform*vec4(prim.v1,1));
+    vec3 vt2 = vec3(prim.transform*vec4(prim.v2,1));
+    vec3 vt3 = vec3(prim.transform*vec4(prim.v3,1));
     
     double minx=min(vt1[0],min(vt2[0],vt3[0])),maxx=max(vt1[0],max(vt2[0],vt3[0])),miny=min(vt1[1],min(vt2[1],vt3[1])),maxy=max(vt1[1],max(vt2[1],vt3[1])),maxz=max(vt1[2],max(vt2[2],vt3[2])),minz=min(vt1[2],min(vt2[2],vt3[2]));
 

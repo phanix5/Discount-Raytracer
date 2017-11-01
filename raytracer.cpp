@@ -104,17 +104,17 @@ public:
 class Primitive{
 public:
   
-  static bool intersectS(ray &r,double &thit,object &obj,LocalGeo &localgeo){
+  static bool intersectS(ray &r,double &thit,primitive &prim,LocalGeo &localgeo){
     //Transform the ray
-     vec4 newOrigin=obj.invTransform*vec4(r.o,1);
+     vec4 newOrigin=prim.invTransform*vec4(r.o,1);
     //homogenize
     newOrigin=newOrigin/newOrigin[3];
-    vec3 newDir=vec3(obj.invTransform*vec4(r.d,0));
+    vec3 newDir=vec3(prim.invTransform*vec4(r.d,0));
     ray tRay=ray(vec3(newOrigin),glm::normalize(newDir));
    
-    vec3 oc = tRay.o-obj.center;
+    vec3 oc = tRay.o-prim.center;
     double b= 2*glm::dot(oc,tRay.d);
-    double c=glm::dot(oc,oc)-obj.radius*obj.radius;
+    double c=glm::dot(oc,oc)-prim.radius*prim.radius;
     double disc=b*b-4*c;
     if(disc<0)return false;
     disc=sqrt(disc);
@@ -124,7 +124,7 @@ public:
     double t=(t0<t1)?t0/2:t1/2;
     if(t<=0)return false;
     vec3 lpoint=(tRay.getPoint(t));
-    vec4 gpoint4=obj.transform*vec4(lpoint,1);
+    vec4 gpoint4=prim.transform*vec4(lpoint,1);
     gpoint4=gpoint4/gpoint4[3];
     vec3 gpoint(gpoint4);
     vec3 tmp=gpoint-r.o;
@@ -132,23 +132,23 @@ public:
    
     if(thit<r.t_min || thit>r.t_max)return false;
     localgeo.point=lpoint;
-    localgeo.normal=glm::normalize(lpoint-obj.center);
+    localgeo.normal=glm::normalize(lpoint-prim.center);
     localgeo.gpoint=gpoint;
-    localgeo.gnormal=glm::normalize(vec3(glm::transpose(obj.invTransform)*vec4(localgeo.normal,0)));
+    localgeo.gnormal=glm::normalize(vec3(glm::transpose(prim.invTransform)*vec4(localgeo.normal,0)));
     
     return true;
   }
-  static bool intersectT(ray &r,double &thit,object &obj,LocalGeo &localgeo){
+  static bool intersectT(ray &r,double &thit,primitive &prim,LocalGeo &localgeo){
     
     //Transform the ray
-    vec4 newOrigin=obj.invTransform*vec4(r.o,1);
+    vec4 newOrigin=prim.invTransform*vec4(r.o,1);
     //homogenize
     newOrigin=newOrigin/newOrigin[3];
-    vec3 newDir=vec3(obj.invTransform*vec4(r.d,0));
+    vec3 newDir=vec3(prim.invTransform*vec4(r.d,0));
     ray tRay=ray(vec3(newOrigin),glm::normalize(newDir));
     
     //first find normal to the triangle
-    vec3 normal= glm::cross(obj.v3-obj.v1,obj.v2-obj.v1);
+    vec3 normal= glm::cross(prim.v3-prim.v1,prim.v2-prim.v1);
     normal=glm::normalize(normal);
    
     //Correct the direction of the normal
@@ -158,12 +158,12 @@ public:
     if(glm::dot(tRay.d,normal)==0)return false;
 
     //Find the intersection point
-    double t = (glm::dot(obj.v1,normal)-glm::dot(tRay.o,normal))/glm::dot(tRay.d,normal);
+    double t = (glm::dot(prim.v1,normal)-glm::dot(tRay.o,normal))/glm::dot(tRay.d,normal);
     if(t<=0)return false;
     
     // Check limits for t
     vec3 lpoint=(tRay.getPoint(t));
-    vec4 gpoint4=obj.transform*vec4(lpoint,1);
+    vec4 gpoint4=prim.transform*vec4(lpoint,1);
     gpoint4=gpoint4/gpoint4[3];
     vec3 gpoint(gpoint4);
     vec3 tmp=gpoint-r.o;
@@ -171,9 +171,9 @@ public:
     if(thit<r.t_min || thit>r.t_max)return false;
     
     //Finally check if intersection within triangle
-    vec3 v0=obj.v3-obj.v1;
-    vec3 v1=obj.v2-obj.v1;
-    vec3 v2=tRay.getPoint(t)-obj.v1;
+    vec3 v0=prim.v3-prim.v1;
+    vec3 v1=prim.v2-prim.v1;
+    vec3 v2=tRay.getPoint(t)-prim.v1;
 
     double u,v;
 
@@ -186,16 +186,16 @@ public:
       localgeo.point=lpoint;
       localgeo.normal=normal;
       localgeo.gpoint=gpoint;
-      localgeo.gnormal=glm::normalize(vec3(glm::transpose(obj.invTransform)*vec4(localgeo.normal,0)));
+      localgeo.gnormal=glm::normalize(vec3(glm::transpose(prim.invTransform)*vec4(localgeo.normal,0)));
       return true;
     }
     return false;
 
   }
 
-  static bool intersect(ray &r,double &thit,object &obj,LocalGeo &localgeo){
-    if(obj.type==TRIANGLE)return intersectT(r,thit,obj,localgeo);
-    return intersectS(r,thit,obj,localgeo);
+  static bool intersect(ray &r,double &thit,primitive &prim,LocalGeo &localgeo){
+    if(prim.type==TRIANGLE)return intersectT(r,thit,prim,localgeo);
+    return intersectS(r,thit,prim,localgeo);
   }
 };
 
@@ -248,16 +248,16 @@ public:
     
     while(index[0]>=0 && index[0]<Nx && index[1]>=0 && index[1]<Ny && index[2]>=0 && index[2]<Nz){
 
-      vector <int> obj_list = grid[index[2]*Ny*Nx + index[1]*Nx+index[0]];
+      vector <int> prim_list = grid[index[2]*Ny*Nx + index[1]*Nx+index[0]];
       bool hit=false;
       thit=r.t_max;
       //if(r.d[1]<0 && r.d[0]<0)cout<<index[0]<<' '<<index[1]<<' '<<index[2]<<endl;
-      for(int i=0;i<obj_list.size();i++)
+      for(int i=0;i<prim_list.size();i++)
 	{
 	  double a;
 	  LocalGeo tempgeo;
-	  int ind = obj_list[i];
-	  if(Primitive::intersect(r,a,objects[ind],tempgeo)){
+	  int ind = prim_list[i];
+	  if(Primitive::intersect(r,a,primitives[ind],tempgeo)){
 	    if(a<thit){
 	      thit=a;
 	      localgeo=tempgeo;
@@ -313,14 +313,14 @@ public:
     vec3 N=localgeo.gnormal;
     vec3 L =lray.d;
     double r=glm::length(vec3(lightransf[Lindex])-lray.o);
-    double *d=objects[localgeo.index].diffuse;
+    double *d=primitives[localgeo.index].diffuse;
     vec3 D = vec3(d[0],d[1],d[2]);
-    d=objects[localgeo.index].specular;
+    d=primitives[localgeo.index].specular;
     vec3 S = vec3(d[0],d[1],d[2]);
     vec3 E = glm::normalize(globalEye - localgeo.gpoint);
     vec3 H = glm::normalize(E+L);
     float atten=1;
-    double s=objects[localgeo.index].shininess;
+    double s=primitives[localgeo.index].shininess;
     if(isPoint)atten=1/(attenuation[0]+r*attenuation[1]+r*r*attenuation[2]);
     float NdotL = glm::dot(N,L);
     if(NdotL<0)NdotL=0;
@@ -335,7 +335,7 @@ public:
 class RayTracer{
 public:
   static void trace(ray &r,int depth,Color& color){
-    color.black();    //Initilize the color object
+    color.black();    //Initilize the color primitive
     if(depth>maxdepth){
       color.black();
       return;
@@ -348,8 +348,8 @@ public:
     }
     
     int index=localgeo.index;
-    color.add(objects[index].ambient);      // Ambient term
-    color.add(objects[index].emission);      // Emissive term
+    color.add(primitives[index].ambient);      // Ambient term
+    color.add(primitives[index].emission);      // Emissive term
 
 
     //If intersecting then analyze lights
@@ -362,7 +362,7 @@ public:
       }
     // Reflections
     // does not work with grid structure
-    double *spec=objects[localgeo.index].specular;
+    double *spec=primitives[localgeo.index].specular;
     if(!(spec[0]==0 && spec[1]==0 && spec[2]==0)){
       //setup reflected ray
       vec3 gN=localgeo.gnormal;
@@ -542,14 +542,43 @@ int main(int argc,char* argv[]){
     cerr<<"Usage: raytracer scenefile\n";
     exit(-1);
   }
-  int st = time(NULL);
+  // For now the scene will be setup in main..to debug
+  // This setup should move over to a scene file sitting in the resource folder
   readfile("setup.test");
   STLParser stlParser;
-  stlParser.readfile(argv[1]);
-  readfile("setup.test");
+  string src = "resource/characters/Letter_S.stl";
+  stlParser.readfile(src.c_str());
+  src = "resource/characters/Letter_U.stl";
+  stlParser.readfile(src.c_str());
+  src = "resource/characters/Letter_S.stl";
+  stlParser.readfile(src.c_str());
+  src = "resource/characters/Letter_H.stl";
+  stlParser.readfile(src.c_str());
+  src = "resource/characters/Letter_I.stl";
+  stlParser.readfile(src.c_str());
+  src = "resource/characters/Letter_L.stl";
+  stlParser.readfile(src.c_str());
+  double displace = 0;
+  cout << objects.size();
+  for (int i = 0; i < objects.size(); i++) {
+	  for (int j = objects[i].start; j <= objects[i].end; j++) {
+		  for (int k = 0; k < 4; k++) {
+			  primitives[j].ambient[k] = ambient[k];
+			  primitives[j].diffuse[k] = diffuse[k];
+			  primitives[j].specular[k] = specular[k];
+			  primitives[j].emission[k] = emission[k];
+		  }
+		  primitives[j].shininess = shininess;
+		  primitives[j].transform = cameraTransform*Transform::translate(displace, 0.0, 0.0);
+		  primitives[j].invTransform = glm::inverse(primitives[j].transform);
+	  }
+	  displace += 40;
+	  if (i == 4)displace -= 20;
+  }
   cout<<"Done reading file, Preprocessing....\n";
   generate_grid();
   cout<<"Done.\n";
+  int st = time(NULL);
   Scene scene;
   scene.render();
   int en = time(NULL);
